@@ -3,6 +3,7 @@ const context = canvas.getContext('2d');
 const world_size = 50;
 
 var cell_size = 10;
+var cell_spacing = 1;
 resizeCanvas();
 
 var isPaused = false;
@@ -129,10 +130,10 @@ function setCell(x, y, c)
 function drawCell(x, y, c)
 {
   context.fillStyle = colorToHex(c);
-  context.fillRect(x * cell_size, 
-                   y * cell_size, 
-                   cell_size - 1,
-                   cell_size - 1);
+  context.fillRect(x * cell_size + (cell_spacing / 2), 
+                   y * cell_size + (cell_spacing / 2), 
+                   cell_size - cell_spacing,
+                   cell_size - cell_spacing);
 }
 
 function countNeighbors(x, y)
@@ -289,5 +290,7 @@ function resizeCanvas() {
   var dim = Math.min(window.innerWidth, window.innerHeight) - 10;
   canvas.width = dim;
   canvas.height = dim;
+
   cell_size = dim / world_size;
+  cell_spacing = cell_size / 10;
 }
