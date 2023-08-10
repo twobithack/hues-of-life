@@ -24,9 +24,14 @@ setInterval(update, 200)
 
 function update()
 {
-  if (isPaused)
-    return;
+  if (!isPaused)
+    tick();
 
+  updateBorderColor();
+}
+
+function tick()
+{
   context.fillStyle = 'black';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -63,8 +68,49 @@ function update()
       }
     }
   }
-  
+
   universe = [...next];
+}
+
+function updateBorderColor()
+{
+  var count = 0;
+  var live = [];
+
+  for (var x = 0; x < world_size; x++)
+    for (var y = 0; y < world_size; y++)
+    {
+      var cell = universe[x][y];
+      if (cell)
+      {
+        live[count] = cell;
+        count++;
+      }
+    }
+
+  
+  if (count == 0)
+  {
+    canvas.style.borderColor = white;
+    return;
+  }
+
+  var r = 0;
+  var g = 0;
+  var b = 0;
+
+  for (var i = 0; i < count; i++)
+  {
+    r += live[i].r;
+    g += live[i].g;
+    b += live[i].b;
+  }
+
+  r = Math.floor(r / count);
+  g = Math.floor(g / count);
+  b = Math.floor(b / count);
+
+  canvas.style.borderColor = colorToHex(color(r, g, b));
 }
 
 function getCell(x, y)
@@ -207,8 +253,6 @@ function handleKeyPress(event)
     default: 
       break;
   }
-
-  canvas.style.borderColor = colorToHex(drawColor);
 }
 
 function handleMouseDown(event)
