@@ -4,7 +4,7 @@ Conway's Game of Life, now in color.
 
 ## Controls
 
-<kbd>Space</kbd> to pause simulation.
+<kbd>Space</kbd> to pause and resume simulation.
 
 Click and drag cursor to populate cells.
 Set color of new cells via keyboard keys:
