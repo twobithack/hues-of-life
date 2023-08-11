@@ -6,8 +6,8 @@ Conway's Game of Life, now in color.
 
 <kbd>Space</kbd> to pause and resume simulation.
 
-Click and drag cursor to populate cells.
-Set color of new cells via keyboard keys:
+Left-click to spawn and replace cells.
+Select color for new cells via keyboard keys:
 
 <kbd>R</kbd> - red  
 <kbd>G</kbd> - green  

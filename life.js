@@ -1,14 +1,18 @@
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
-const world_size = 50;
+const world_size = 25;
 
-var cell_size = 10;
-var cell_spacing = 1;
+var cell_size;
+var cell_spacing;
 resizeCanvas();
 
 var isPaused = false;
 var isDrawing = false;
 var drawColor = color(255, 255, 255);
+
+var universe = [];
+for (let x = 0; x < world_size; x++)
+    universe[x] = [];
 
 document.addEventListener('keydown', handleKeyPress);
 canvas.addEventListener('mousedown', handleMouseDown);
@@ -16,10 +20,6 @@ canvas.addEventListener('mouseup', handleMouseUp);
 canvas.addEventListener('mouseout', handleMouseUp);
 canvas.addEventListener('mousemove', handleMouseMove);
 window.addEventListener('resize', resizeCanvas);
-
-var universe = [];
-for (let x = 0; x < world_size; x++)
-    universe[x] = [];
 
 setInterval(update, 100)
 
@@ -45,18 +45,14 @@ function tick()
 
       if (universe[x][y])
       {
-        if (neighbors == 2 ||
+        if (neighbors == 2 || 
             neighbors == 3)
-        {
           cell = universe[x][y];
-        }
       }
       else
       {
         if (neighbors == 3)
-        {
           cell = blendNeighbors(x, y);
-        }
       }
       
       next[x][y] = cell;
@@ -88,7 +84,7 @@ function redraw()
 
   if (count == 0)
   {
-    canvas.style.borderColor = 'white';
+    canvas.style.borderColor = '#ffffff';
   }
   else
   {
@@ -142,75 +138,61 @@ function drawCell(x, y, c)
                    cell_size - cell_spacing);
 }
 
+function getNeighbors(x, y)
+{
+  let neighbors = [];
+
+  for (let dx = -1; dx <= 1; dx++)
+    for (let dy = -1; dy <= 1; dy++)
+    {
+      if (dx == 0 && dy == 0)
+        continue;
+      
+      let cell = getCell(x + dx, y + dy);
+      if (cell)
+        neighbors.push(cell);
+    }
+  
+  return neighbors;
+}
+
 function countNeighbors(x, y)
 {
-  let count = 0;
-
-  if (getCell(x - 1, y - 1))  count++;
-  if (getCell(x - 1, y    ))  count++;
-  if (getCell(x - 1, y + 1))  count++;
-  if (getCell(x,     y - 1))  count++;
-  if (getCell(x,     y + 1))  count++;
-  if (getCell(x + 1, y - 1))  count++;
-  if (getCell(x + 1, y    ))  count++;
-  if (getCell(x + 1, y + 1))  count++;
-
-  return count;
+  let neighbors = getNeighbors(x, y);
+  return neighbors.length;
 }
 
 function blendNeighbors(x, y)
 {
-  let neighbors = [];
-
-  neighbors[0] = getCell(x - 1, y - 1);
-  neighbors[1] = getCell(x - 1, y    );
-  neighbors[2] = getCell(x - 1, y + 1);
-  neighbors[3] = getCell(x,     y - 1);
-  neighbors[4] = getCell(x,     y + 1);
-  neighbors[5] = getCell(x + 1, y - 1);
-  neighbors[6] = getCell(x + 1, y    );
-  neighbors[7] = getCell(x + 1, y + 1);
-
-  let populated = [];
-  let count = 0;
-
-  for (let i = 0; i < 8; i++)
-   if (neighbors[i])
-   {
-    populated[count] = i;
-    count++;
-   }
-
-  return blendColors(neighbors[populated[0]], 
-                     neighbors[populated[1]], 
-                     neighbors[populated[2]]);
+  let neighbors = getNeighbors(x, y);
+  return blend(...neighbors);
 }
 
 function color(r, g, b)
 {
   return {
-    "r": r,
-    "g": g,
-    "b": b
+    'r': r,
+    'g': g,
+    'b': b
   };
 }
 
-function blendColors(c0, c1, c2)
+function blend(color0, color1, color2)
 {
-  let r = Math.floor((c0.r + c1.r + c2.r) / 3);
-  let g = Math.floor((c0.g + c1.g + c2.g) / 3);
-  let b = Math.floor((c0.b + c1.b + c2.b) / 3);
+  let r = Math.floor((color0.r + color1.r + color2.r) / 3);
+  let g = Math.floor((color0.g + color1.g + color2.g) / 3);
+  let b = Math.floor((color0.b + color1.b + color2.b) / 3);
 
   return color(r, g, b);
 }
 
 function colorToHex(color) {
-  return "#" + decimalToHex(color.r) + decimalToHex(color.g) + decimalToHex(color.b);
+  return '#' + decimalToHex(color.r) + decimalToHex(color.g) + decimalToHex(color.b);
 }
 
 function decimalToHex(value) {
   let hex = value.toString(16);
-  return hex.length == 1 ? "0" + hex : hex;
+  return hex.length == 1 ? '0' + hex : hex;
 }
 
 function handleKeyPress(event)
@@ -271,13 +253,13 @@ function handleMouseDown(event)
   let yCoord = Math.floor((event.clientY - bounds.top) / cell_size);
 
   setCell(xCoord, yCoord, drawColor);
-  canvas.style.cursor = "crosshair"; 
+  canvas.style.cursor = 'crosshair'; 
 }
 
 function handleMouseUp()
 {
   isDrawing = false;
-  canvas.style.cursor = "default"; 
+  canvas.style.cursor = 'default'; 
 }
 
 function handleMouseMove(event)
