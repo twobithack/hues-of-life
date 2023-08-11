@@ -1,4 +1,4 @@
-# Shades of Life
+# Hues of Life
 
 Conway's Game of Life, now in color.
 
