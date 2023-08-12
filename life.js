@@ -1,15 +1,17 @@
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
+const minimumDimension = 25;
 
 var worldWidth;
 var worldHeight;
 var cellSize;
 var cellSpacing;
-resizeCanvas();
+setCanvasSize();
 
 var isPaused = false;
 var isDrawing = false;
-var selectedColor = color(255, 255, 255);
+var useRandomColor = true;
+var selectedColor = randomColor();
 var gridColor = color(255, 255, 255);
 var touches = new Map();
 
@@ -169,7 +171,7 @@ function countNeighbors(x, y)
 function blendNeighbors(x, y)
 {
   let neighbors = getNeighbors(x, y);
-  return blend(...neighbors);
+  return blendColors(...neighbors);
 }
 
 function color(r, g, b)
@@ -181,7 +183,7 @@ function color(r, g, b)
   };
 }
 
-function blend(color0, color1, color2)
+function blendColors(color0, color1, color2)
 {
   let r = Math.floor((color0.r + color1.r + color2.r) / 3);
   let g = Math.floor((color0.g + color1.g + color2.g) / 3);
@@ -214,6 +216,10 @@ function handleKeyPress(event)
   {
     case 'Space':
       isPaused = !isPaused;
+      return;
+
+    case 'KeyX':
+      useRandomColor = true;
       return;
 
     case 'KeyR':
@@ -251,15 +257,16 @@ function handleKeyPress(event)
     case 'KeyP':
       selectedColor = color(243, 58, 106);
       break;
-  
-    default: 
-      break;
   }
+
+  useRandomColor = false;
 }
 
 function handleMouseDown(event)
 {
   isDrawing = true;
+  if (useRandomColor)
+    selectedColor = randomColor();
   
   let bounds = canvas.getBoundingClientRect();
   let x = Math.floor((event.clientX - bounds.left) / cellSize);
@@ -294,12 +301,13 @@ function handleTouchStart(event)
   for (let i = 0; i < event.changedTouches.length; i++)
   {
     let touch = event.changedTouches.item(i);
-    let color = randomColor();
+    let color = useRandomColor
+              ? randomColor()
+              : selectedColor;
     touches.set(touch.identifier, color);
 
     let x = Math.floor((touch.clientX - bounds.left) / cellSize);
     let y = Math.floor((touch.clientY - bounds.top) / cellSize);
-
     setCell(x, y, color);  
   }
 }
@@ -321,22 +329,21 @@ function handleTouchMove(event)
 
     let x = Math.floor((touch.clientX - bounds.left) / cellSize);
     let y = Math.floor((touch.clientY - bounds.top) / cellSize);
-
     setCell(x, y, color);  
   }
 }
 
-function resizeCanvas() {
+function setCanvasSize() {
   let ratio = window.innerWidth / window.innerHeight;
   if (ratio > 1)
   {
-    worldWidth = Math.floor(ratio * 25);
-    worldHeight = 25
+    worldWidth = Math.floor(ratio * minimumDimension);
+    worldHeight = minimumDimension;
   }
   else
   {
-    worldWidth = 25
-    worldHeight = Math.floor((1 / ratio) * 25);
+    worldWidth = minimumDimension;
+    worldHeight = Math.floor((1 / ratio) * minimumDimension);
   }
 
   canvas.width = window.innerWidth;
