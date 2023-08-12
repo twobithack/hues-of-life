@@ -8,7 +8,8 @@ resizeCanvas();
 
 var isPaused = false;
 var isDrawing = false;
-var drawColor = color(255, 255, 255);
+var selectedColor = color(255, 255, 255);
+var touches = new Map();
 
 var universe = [];
 for (let x = 0; x < world_size; x++)
@@ -19,7 +20,15 @@ canvas.addEventListener('mousedown', handleMouseDown);
 canvas.addEventListener('mouseup', handleMouseUp);
 canvas.addEventListener('mouseout', handleMouseUp);
 canvas.addEventListener('mousemove', handleMouseMove);
+canvas.addEventListener('touchstart', handleTouchStart);
+canvas.addEventListener('touchend', handleTouchEnd);
+canvas.addEventListener('touchmove', handleTouchMove);
 window.addEventListener('resize', resizeCanvas);
+
+document.body.addEventListener('touchstart', preventDefaultAction, { passive: false });
+document.body.addEventListener('touchend', preventDefaultAction, { passive: false });
+document.body.addEventListener('touchmove', preventDefaultAction, { passive: false });
+document.body.addEventListener('wheel', preventDefaultAction, { passive: false });
 
 setInterval(update, 100)
 
@@ -118,9 +127,9 @@ function redraw()
 
 function getCell(x, y)
 {
-  let xCoord = (x + world_size) % world_size;
-  let yCoord = (y + world_size) % world_size;
-  return universe[xCoord][yCoord];
+  let xWrapped = (x + world_size) % world_size;
+  let yWrapped = (y + world_size) % world_size;
+  return universe[xWrapped][yWrapped];
 }
 
 function setCell(x, y, c)
@@ -186,6 +195,15 @@ function blend(color0, color1, color2)
   return color(r, g, b);
 }
 
+function randomColor()
+{
+  let r = Math.floor(Math.random() * 255);
+  let g = Math.floor(Math.random() * 255);
+  let b = Math.floor(Math.random() * 255);
+
+  return color(r, g, b);
+}
+
 function colorToHex(color) {
   return '#' + decimalToHex(color.r) + decimalToHex(color.g) + decimalToHex(color.b);
 }
@@ -204,39 +222,39 @@ function handleKeyPress(event)
       return;
 
     case 'KeyR':
-      drawColor = color(255, 0, 0);
+      selectedColor = color(255, 0, 0);
       break;
     
     case 'KeyG':
-      drawColor = color(0, 255, 0);
+      selectedColor = color(0, 255, 0);
       break;
 
     case 'KeyB':
-      drawColor = color(0, 0, 255);
+      selectedColor = color(0, 0, 255);
       break;
 
     case 'KeyC':
-      drawColor = color(0, 255, 255);
+      selectedColor = color(0, 255, 255);
       break;
 
     case 'KeyM':
-      drawColor = color(255, 0, 255);
+      selectedColor = color(255, 0, 255);
       break;
 
     case 'KeyY':
-      drawColor = color(255, 255, 0);
+      selectedColor = color(255, 255, 0);
       break;
 
     case 'KeyK':
-      drawColor = color(0, 0, 0);
+      selectedColor = color(0, 0, 0);
       break;
 
     case 'KeyW':
-      drawColor = color(255, 255, 255);
+      selectedColor = color(255, 255, 255);
       break;
 
     case 'KeyP':
-      drawColor = color(243, 58, 106);
+      selectedColor = color(243, 58, 106);
       break;
   
     default: 
@@ -249,10 +267,10 @@ function handleMouseDown(event)
   isDrawing = true;
   
   let bounds = canvas.getBoundingClientRect();
-  let xCoord = Math.floor((event.clientX - bounds.left) / cell_size);
-  let yCoord = Math.floor((event.clientY - bounds.top) / cell_size);
+  let x = Math.floor((event.clientX - bounds.left) / cell_size);
+  let y = Math.floor((event.clientY - bounds.top) / cell_size);
 
-  setCell(xCoord, yCoord, drawColor);
+  setCell(x, y, selectedColor);
   canvas.style.cursor = 'crosshair'; 
 }
 
@@ -268,17 +286,62 @@ function handleMouseMove(event)
     return;
   
   let bounds = canvas.getBoundingClientRect();
-  let xCoord = Math.floor((event.clientX - bounds.left) / cell_size);
-  let yCoord = Math.floor((event.clientY - bounds.top) / cell_size);
+  let x = Math.floor((event.clientX - bounds.left) / cell_size);
+  let y = Math.floor((event.clientY - bounds.top) / cell_size);
 
-  setCell(xCoord, yCoord, drawColor);
+  setCell(x, y, selectedColor);
+}
+
+function handleTouchStart(event)
+{
+  let bounds = canvas.getBoundingClientRect();
+
+  for (let i = 0; i < event.changedTouches.length; i++)
+  {
+    let touch = event.changedTouches.item(i);
+    let color = randomColor();
+    touches.set(touch.identifier, color);
+
+    let x = Math.floor((touch.clientX - bounds.left) / cell_size);
+    let y = Math.floor((touch.clientY - bounds.top) / cell_size);
+
+    setCell(x, y, color);  
+  }
+}
+
+function handleTouchEnd(event)
+{
+  for (let i = 0; i < event.changedTouches.length; i++)
+    touches.delete(event.changedTouches.item(i).identifier);
+}
+
+function handleTouchMove(event)
+{
+  let bounds = canvas.getBoundingClientRect();
+
+  for (let i = 0; i < event.changedTouches.length; i++)
+  {
+    let touch = event.changedTouches.item(i);
+    let color = touches.get(touch.identifier);
+
+    let x = Math.floor((touch.clientX - bounds.left) / cell_size);
+    let y = Math.floor((touch.clientY - bounds.top) / cell_size);
+
+    setCell(x, y, color);  
+  }
 }
 
 function resizeCanvas() {
-  let dim = Math.min(window.innerWidth, window.innerHeight) - 10;
-  canvas.width = dim;
-  canvas.height = dim;
+  let size = Math.min(window.innerWidth, window.innerHeight) - 10;
+  canvas.width = size;
+  canvas.height = size;
 
-  cell_size = dim / world_size;
+  cell_size = size / world_size;
   cell_spacing = cell_size / 10;
+}
+
+function preventDefaultAction(event)
+{
+  if (event.target == canvas)
+    event.preventDefault();
 }
