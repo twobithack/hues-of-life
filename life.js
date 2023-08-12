@@ -33,17 +33,17 @@ document.body.addEventListener('touchend', preventDefaultAction, { passive: fals
 document.body.addEventListener('touchmove', preventDefaultAction, { passive: false });
 document.body.addEventListener('wheel', preventDefaultAction, { passive: false });
 
-setInterval(update, 100)
+setInterval(update, 125)
 
 function update()
 {
   if (!isPaused)
-    tick();
+    iterate();
 
   redraw();
 }
 
-function tick()
+function iterate()
 {
   let next = [];
 
