@@ -1,18 +1,20 @@
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
-const world_size = 25;
 
-var cell_size;
-var cell_spacing;
+var worldWidth;
+var worldHeight;
+var cellSize;
+var cellSpacing;
 resizeCanvas();
 
 var isPaused = false;
 var isDrawing = false;
 var selectedColor = color(255, 255, 255);
+var gridColor = color(255, 255, 255);
 var touches = new Map();
 
 var universe = [];
-for (let x = 0; x < world_size; x++)
+for (let x = 0; x < worldWidth; x++)
     universe[x] = [];
 
 document.addEventListener('keydown', handleKeyPress);
@@ -23,7 +25,6 @@ canvas.addEventListener('mousemove', handleMouseMove);
 canvas.addEventListener('touchstart', handleTouchStart);
 canvas.addEventListener('touchend', handleTouchEnd);
 canvas.addEventListener('touchmove', handleTouchMove);
-window.addEventListener('resize', resizeCanvas);
 
 document.body.addEventListener('touchstart', preventDefaultAction, { passive: false });
 document.body.addEventListener('touchend', preventDefaultAction, { passive: false });
@@ -44,10 +45,10 @@ function tick()
 {
   let next = [];
 
-  for (let x = 0; x < world_size; x++)
+  for (let x = 0; x < worldWidth; x++)
   {
     next[x] = []
-    for (let y = 0; y < world_size; y++)
+    for (let y = 0; y < worldHeight; y++)
     {
       let neighbors = countNeighbors(x, y);
       let cell = null;
@@ -76,59 +77,53 @@ function redraw()
   context.fillStyle = 'black';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  let count = 0;
   let live = [];
 
-  for (let x = 0; x < world_size; x++)
-    for (let y = 0; y < world_size; y++)
+  for (let x = 0; x < worldWidth; x++)
+    for (let y = 0; y < worldHeight; y++)
     {
       let cell = universe[x][y];
       if (cell)
       {
         drawCell(x, y, cell);
-        live[count] = cell;
-        count++;
+        live.push(cell);
       }
     }
 
-  if (count == 0)
-  {
-    canvas.style.borderColor = '#ffffff';
-  }
-  else
+  if (live.length != 0)
   {
     let r = 0;
     let g = 0;
     let b = 0;
 
-    for (let i = 0; i < count; i++)
+    live.forEach((cell) => 
     {
-      r += live[i].r;
-      g += live[i].g;
-      b += live[i].b;
-    }
+      r += cell.r;
+      g += cell.g;
+      b += cell.b;
+    });
 
-    r = Math.floor(r / count);
-    g = Math.floor(g / count);
-    b = Math.floor(b / count);
+    r = Math.floor(r / live.length);
+    g = Math.floor(g / live.length);
+    b = Math.floor(b / live.length);
 
-    canvas.style.borderColor = colorToHex(color(r, g, b));
+    gridColor = color(r, g, b);
   }
   
-  context.fillStyle = canvas.style.borderColor;
-
-  for (let x = 1; x < world_size; x++)
-    for (let y = 1; y < world_size; y++)
-      context.fillRect(x * cell_size - (cell_spacing/2), 
-                       y * cell_size - (cell_spacing/2),
-                       cell_spacing,
-                       cell_spacing);
+  context.fillStyle = toHex(gridColor);
+  
+  for (let x = 1; x < worldWidth; x++)
+    for (let y = 1; y < worldHeight; y++)
+      context.fillRect(x * cellSize - (cellSpacing/2), 
+                       y * cellSize - (cellSpacing/2),
+                       cellSpacing,
+                       cellSpacing);
 }
 
 function getCell(x, y)
 {
-  let xWrapped = (x + world_size) % world_size;
-  let yWrapped = (y + world_size) % world_size;
+  let xWrapped = (x + worldWidth) % worldWidth;
+  let yWrapped = (y + worldHeight) % worldHeight;
   return universe[xWrapped][yWrapped];
 }
 
@@ -140,11 +135,11 @@ function setCell(x, y, c)
 
 function drawCell(x, y, c)
 {
-  context.fillStyle = colorToHex(c);
-  context.fillRect(x * cell_size + (cell_spacing / 2), 
-                   y * cell_size + (cell_spacing / 2), 
-                   cell_size - cell_spacing,
-                   cell_size - cell_spacing);
+  context.fillStyle = toHex(c);
+  context.fillRect(x * cellSize + (cellSpacing / 2), 
+                   y * cellSize + (cellSpacing / 2), 
+                   cellSize - cellSpacing,
+                   cellSize - cellSpacing);
 }
 
 function getNeighbors(x, y)
@@ -204,7 +199,7 @@ function randomColor()
   return color(r, g, b);
 }
 
-function colorToHex(color) {
+function toHex(color) {
   return '#' + decimalToHex(color.r) + decimalToHex(color.g) + decimalToHex(color.b);
 }
 
@@ -267,8 +262,8 @@ function handleMouseDown(event)
   isDrawing = true;
   
   let bounds = canvas.getBoundingClientRect();
-  let x = Math.floor((event.clientX - bounds.left) / cell_size);
-  let y = Math.floor((event.clientY - bounds.top) / cell_size);
+  let x = Math.floor((event.clientX - bounds.left) / cellSize);
+  let y = Math.floor((event.clientY - bounds.top) / cellSize);
 
   setCell(x, y, selectedColor);
   canvas.style.cursor = 'crosshair'; 
@@ -286,8 +281,8 @@ function handleMouseMove(event)
     return;
   
   let bounds = canvas.getBoundingClientRect();
-  let x = Math.floor((event.clientX - bounds.left) / cell_size);
-  let y = Math.floor((event.clientY - bounds.top) / cell_size);
+  let x = Math.floor((event.clientX - bounds.left) / cellSize);
+  let y = Math.floor((event.clientY - bounds.top) / cellSize);
 
   setCell(x, y, selectedColor);
 }
@@ -302,8 +297,8 @@ function handleTouchStart(event)
     let color = randomColor();
     touches.set(touch.identifier, color);
 
-    let x = Math.floor((touch.clientX - bounds.left) / cell_size);
-    let y = Math.floor((touch.clientY - bounds.top) / cell_size);
+    let x = Math.floor((touch.clientX - bounds.left) / cellSize);
+    let y = Math.floor((touch.clientY - bounds.top) / cellSize);
 
     setCell(x, y, color);  
   }
@@ -324,20 +319,31 @@ function handleTouchMove(event)
     let touch = event.changedTouches.item(i);
     let color = touches.get(touch.identifier);
 
-    let x = Math.floor((touch.clientX - bounds.left) / cell_size);
-    let y = Math.floor((touch.clientY - bounds.top) / cell_size);
+    let x = Math.floor((touch.clientX - bounds.left) / cellSize);
+    let y = Math.floor((touch.clientY - bounds.top) / cellSize);
 
     setCell(x, y, color);  
   }
 }
 
 function resizeCanvas() {
-  let size = Math.min(window.innerWidth, window.innerHeight) - 10;
-  canvas.width = size;
-  canvas.height = size;
+  let ratio = window.innerWidth / window.innerHeight;
+  if (ratio > 1)
+  {
+    worldWidth = Math.floor(ratio * 25);
+    worldHeight = 25
+  }
+  else
+  {
+    worldWidth = 25
+    worldHeight = Math.floor((1 / ratio) * 25);
+  }
 
-  cell_size = size / world_size;
-  cell_spacing = cell_size / 10;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  cellSize = canvas.width / worldWidth;
+  cellSpacing = cellSize / 10;
 }
 
 function preventDefaultAction(event)
