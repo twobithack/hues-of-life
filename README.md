@@ -2,12 +2,15 @@
 
 Conway's Game of Life, now in color.
 
-## Controls
+## Touch Controls
+
+Touch and swipe to spawn cells of a random color.
+
+## Mouse and Keyboard Controls
 
 <kbd>Space</kbd> to pause and resume simulation.
 
-Left-click to spawn and replace cells.
-Select color for new cells via keyboard keys:
+Left-click to spawn cells. Select color of new cells via keyboard keys:
 
 <kbd>R</kbd> - red  
 <kbd>G</kbd> - green  
