@@ -4,12 +4,14 @@ Conway's Game of Life, now in color.
 
 ## Controls
 
+### Touchscreen
+
+Tap and swipe to populate cells. Multitouch is also supported.
+
 ### Mouse and Keyboard
 
-<kbd>Space</kbd> to pause and resume simulation.
-
-Left-click and drag the cursor to spawn new cells.  
-Select color of new cells via keyboard keys:
+Left-click and drag to populate cells.
+Use keyboard to select color for new cells:
 
 <kbd>R</kbd> - red  
 <kbd>G</kbd> - green  
@@ -19,8 +21,6 @@ Select color of new cells via keyboard keys:
 <kbd>Y</kbd> - yellow  
 <kbd>K</kbd> - black  
 <kbd>W</kbd> - white  
-<kbd>X</kbd> - random (default)
+<kbd>X</kbd> - random
 
-### Touch devices
-
-Tap and swipe to spawn new cells. Multitouch is supported.
+<kbd>Space</kbd> to pause and resume simulation.
