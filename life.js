@@ -1,6 +1,5 @@
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
-const minimumDimension = 25;
 
 var worldWidth;
 var worldHeight;
@@ -334,7 +333,14 @@ function handleTouchMove(event)
 }
 
 function setCanvasSize() {
+  let userAgent = navigator.userAgent;
+  let isMobile =
+    /\b(BlackBerry|webOS|iPhone|IEMobile)\b/i.test(userAgent) ||
+    /\b(Android|Windows Phone|iPad|iPod)\b/i.test(userAgent);
+
+  let minimumDimension = isMobile ? 25 : 50;
   let ratio = window.innerWidth / window.innerHeight;
+  
   if (ratio > 1)
   {
     worldWidth = Math.floor(ratio * minimumDimension);
