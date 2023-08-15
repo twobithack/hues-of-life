@@ -14,13 +14,19 @@ Left-click and drag to populate cells.
 Use keyboard to select color for new cells:
 
 <kbd>R</kbd> - red  
-<kbd>G</kbd> - green  
-<kbd>B</kbd> - blue  
-<kbd>C</kbd> - cyan  
-<kbd>M</kbd> - magenta  
+<kbd>O</kbd> - orange  
 <kbd>Y</kbd> - yellow  
+<kbd>H</kbd> - chartreuse  
+<kbd>G</kbd> - green  
+<kbd>S</kbd> - spring green  
+<kbd>C</kbd> - cyan  
+<kbd>D</kbd> - dodger blue  
+<kbd>B</kbd> - blue  
+<kbd>P</kbd> - purple  
+<kbd>V</kbd> - violet  
+<kbd>M</kbd> - magenta  
 <kbd>K</kbd> - black  
 <kbd>W</kbd> - white  
-<kbd>X</kbd> - random
+<kbd>X</kbd> - random  
 
 <kbd>Space</kbd> to pause and resume simulation.

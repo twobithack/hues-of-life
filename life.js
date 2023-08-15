@@ -1,5 +1,19 @@
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
+const hues = [
+  color(255,   0,   0), // red
+  color(255, 128,   0), // orange
+  color(255, 255,   0), // yellow
+  color(128, 255,   0), // chartreuse
+  color(  0, 255,   0), // green
+  color(  0, 255, 128), // spring green
+  color(  0, 255, 255), // cyan
+  color(  0, 128, 255), // dodger blue
+  color(  0,   0, 255), // blue
+  color(128,   0, 255), // purple
+  color(255,   0, 255), // violet
+  color(255,   0, 128)  // magenta
+];
 
 var worldWidth;
 var worldHeight;
@@ -10,7 +24,7 @@ setCanvasSize();
 var isPaused = false;
 var isDrawing = false;
 var useRandomColor = true;
-var selectedColor = randomColor();
+var selectedColor = getRandomHue();
 var gridColor = color(255, 255, 255);
 var touches = new Map();
 
@@ -78,7 +92,7 @@ function redraw()
   context.fillStyle = 'black';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  let live = [];
+  let alive = [];
 
   for (let x = 0; x < worldWidth; x++)
     for (let y = 0; y < worldHeight; y++)
@@ -87,26 +101,26 @@ function redraw()
       if (cell)
       {
         drawCell(x, y, cell);
-        live.push(cell);
+        alive.push(cell);
       }
     }
 
-  if (live.length != 0)
+  if (alive.length != 0)
   {
     let r = 0;
     let g = 0;
     let b = 0;
 
-    live.forEach((cell) => 
+    alive.forEach((cell) => 
     {
       r += cell.r;
       g += cell.g;
       b += cell.b;
     });
 
-    r = Math.floor(r / live.length);
-    g = Math.floor(g / live.length);
-    b = Math.floor(b / live.length);
+    r = Math.floor(r / alive.length);
+    g = Math.floor(g / alive.length);
+    b = Math.floor(b / alive.length);
 
     gridColor = color(r, g, b);
   }
@@ -191,13 +205,10 @@ function blendColors(color0, color1, color2)
   return color(r, g, b);
 }
 
-function randomColor()
+function getRandomHue()
 {
-  let r = Math.floor(Math.random() * 255);
-  let g = Math.floor(Math.random() * 255);
-  let b = Math.floor(Math.random() * 255);
-
-  return color(r, g, b);
+  let index = Math.floor(Math.random() * hues.length);
+  return hues[index];
 }
 
 function toHex(color) {
@@ -222,40 +233,63 @@ function handleKeyPress(event)
       return;
 
     case 'KeyR':
-      selectedColor = color(255, 0, 0);
-      break;
-    
-    case 'KeyG':
-      selectedColor = color(0, 255, 0);
+      selectedColor = hues[0];
       break;
 
-    case 'KeyB':
-      selectedColor = color(0, 0, 255);
-      break;
-
-    case 'KeyC':
-      selectedColor = color(0, 255, 255);
-      break;
-
-    case 'KeyM':
-      selectedColor = color(255, 0, 255);
+    case 'KeyO':
+      selectedColor = hues[1];
       break;
 
     case 'KeyY':
-      selectedColor = color(255, 255, 0);
+      selectedColor = hues[2];
+      break;
+    
+    case 'KeyH':
+      selectedColor = hues[3];
+      break;
+    
+    case 'KeyG':
+      selectedColor = hues[4];
+      break;
+
+    case 'KeyS':
+      selectedColor = hues[5];
+      break;
+
+    case 'KeyC':
+      selectedColor = hues[6];
+      break;
+
+    case 'KeyD':
+      selectedColor = hues[7];
+      break;
+
+    case 'KeyB':
+      selectedColor = hues[8];
+      break;
+
+    case 'KeyP':
+      selectedColor = hues[9];
+      break;
+
+    case 'KeyV':
+      selectedColor = hues[10];
+      break;
+
+    case 'KeyM':
+      selectedColor = hues[11];
       break;
 
     case 'KeyK':
-      selectedColor = color(0, 0, 0);
+      selectedColor = color(  0,   0,   0);
       break;
 
     case 'KeyW':
       selectedColor = color(255, 255, 255);
       break;
 
-    case 'KeyP':
-      selectedColor = color(243, 58, 106);
-      break;
+    default:
+      return;
   }
 
   useRandomColor = false;
@@ -265,7 +299,7 @@ function handleMouseDown(event)
 {
   isDrawing = true;
   if (useRandomColor)
-    selectedColor = randomColor();
+    selectedColor = getRandomHue();
   
   let bounds = canvas.getBoundingClientRect();
   let x = Math.floor((event.clientX - bounds.left) / cellSize);
@@ -301,7 +335,7 @@ function handleTouchStart(event)
   {
     let touch = event.changedTouches.item(i);
     let color = useRandomColor
-              ? randomColor()
+              ? getRandomHue()
               : selectedColor;
     touches.set(touch.identifier, color);
 
