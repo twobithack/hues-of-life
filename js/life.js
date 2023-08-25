@@ -1,36 +1,38 @@
+import { Color } from './color.js';
+
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
 const hues = [
-  color(255,   0,   0), // red
-  color(255, 128,   0), // orange
-  color(255, 255,   0), // yellow
-  color(128, 255,   0), // chartreuse
-  color(  0, 255,   0), // green
-  color(  0, 255, 128), // spring green
-  color(  0, 255, 255), // cyan
-  color(  0, 128, 255), // dodger blue
-  color(  0,   0, 255), // blue
-  color(128,   0, 255), // purple
-  color(255,   0, 255), // violet
-  color(255,   0, 128)  // magenta
+  new Color(255,   0,   0), // red
+  new Color(255, 128,   0), // orange
+  new Color(255, 255,   0), // yellow
+  new Color(128, 255,   0), // chartreuse
+  new Color(  0, 255,   0), // green
+  new Color(  0, 255, 128), // spring green
+  new Color(  0, 255, 255), // cyan
+  new Color(  0, 128, 255), // dodger blue
+  new Color(  0,   0, 255), // blue
+  new Color(128,   0, 255), // purple
+  new Color(255,   0, 255), // violet
+  new Color(255,   0, 128)  // magenta
 ];
 
-var worldWidth;
-var worldHeight;
+var universeWidth;
+var universeHeight;
 var cellSize;
 var cellSpacing;
 setCanvasSize();
+
+var universe = [];
+for (let x = 0; x < universeWidth; x++)
+    universe[x] = [];
 
 var isPaused = false;
 var isDrawing = false;
 var useRandomColor = true;
 var selectedColor = getRandomHue();
-var gridColor = color(255, 255, 255);
+var gridColor = new Color(255, 255, 255);
 var touches = new Map();
-
-var universe = [];
-for (let x = 0; x < worldWidth; x++)
-    universe[x] = [];
 
 document.addEventListener('keydown', handleKeyPress);
 canvas.addEventListener('mousedown', handleMouseDown);
@@ -59,11 +61,10 @@ function update()
 function iterate()
 {
   let next = [];
-
-  for (let x = 0; x < worldWidth; x++)
+  for (let x = 0; x < universeWidth; x++)
   {
     next[x] = []
-    for (let y = 0; y < worldHeight; y++)
+    for (let y = 0; y < universeHeight; y++)
     {
       let neighbors = countNeighbors(x, y);
       let cell = null;
@@ -92,43 +93,26 @@ function redraw()
   context.fillStyle = 'black';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  let alive = [];
+  let living = [];
 
-  for (let x = 0; x < worldWidth; x++)
-    for (let y = 0; y < worldHeight; y++)
+  for (let x = 0; x < universeWidth; x++)
+    for (let y = 0; y < universeHeight; y++)
     {
       let cell = universe[x][y];
       if (cell)
       {
         drawCell(x, y, cell);
-        alive.push(cell);
+        living.push(cell);
       }
     }
 
-  if (alive.length != 0)
-  {
-    let r = 0;
-    let g = 0;
-    let b = 0;
-
-    alive.forEach((cell) => 
-    {
-      r += cell.r;
-      g += cell.g;
-      b += cell.b;
-    });
-
-    r = Math.floor(r / alive.length);
-    g = Math.floor(g / alive.length);
-    b = Math.floor(b / alive.length);
-
-    gridColor = color(r, g, b);
-  }
+  if (living.length != 0)
+    gridColor = Color.blend(...living);
   
-  context.fillStyle = toHex(gridColor);
+  context.fillStyle = gridColor.toHex();
   
-  for (let x = 1; x < worldWidth; x++)
-    for (let y = 1; y < worldHeight; y++)
+  for (let x = 1; x < universeWidth; x++)
+    for (let y = 1; y < universeHeight; y++)
       context.fillRect(x * cellSize - (cellSpacing/2), 
                        y * cellSize - (cellSpacing/2),
                        cellSpacing,
@@ -137,20 +121,20 @@ function redraw()
 
 function getCell(x, y)
 {
-  let xWrapped = (x + worldWidth) % worldWidth;
-  let yWrapped = (y + worldHeight) % worldHeight;
+  let xWrapped = (x + universeWidth) % universeWidth;
+  let yWrapped = (y + universeHeight) % universeHeight;
   return universe[xWrapped][yWrapped];
 }
 
-function setCell(x, y, c)
+function setCell(x, y, color)
 {
-  universe[x][y] = c;
-  drawCell(x, y, c);
+  universe[x][y] = color;
+  drawCell(x, y, color);
 }
 
-function drawCell(x, y, c)
+function drawCell(x, y, color)
 {
-  context.fillStyle = toHex(c);
+  context.fillStyle = color.toHex();
   context.fillRect(x * cellSize + (cellSpacing / 2), 
                    y * cellSize + (cellSpacing / 2), 
                    cellSize - cellSpacing,
@@ -184,40 +168,13 @@ function countNeighbors(x, y)
 function blendNeighbors(x, y)
 {
   let neighbors = getNeighbors(x, y);
-  return blendColors(...neighbors);
-}
-
-function color(r, g, b)
-{
-  return {
-    'r': r,
-    'g': g,
-    'b': b
-  };
-}
-
-function blendColors(color0, color1, color2)
-{
-  let r = Math.floor((color0.r + color1.r + color2.r) / 3);
-  let g = Math.floor((color0.g + color1.g + color2.g) / 3);
-  let b = Math.floor((color0.b + color1.b + color2.b) / 3);
-
-  return color(r, g, b);
+  return Color.blend(...neighbors);
 }
 
 function getRandomHue()
 {
   let index = Math.floor(Math.random() * hues.length);
   return hues[index];
-}
-
-function toHex(color) {
-  return '#' + decimalToHex(color.r) + decimalToHex(color.g) + decimalToHex(color.b);
-}
-
-function decimalToHex(value) {
-  let hex = value.toString(16);
-  return hex.length == 1 ? '0' + hex : hex;
 }
 
 function handleKeyPress(event)
@@ -281,11 +238,11 @@ function handleKeyPress(event)
       break;
 
     case 'KeyK':
-      selectedColor = color(  0,   0,   0);
+      selectedColor = new Color(  0,   0,   0);
       break;
 
     case 'KeyW':
-      selectedColor = color(255, 255, 255);
+      selectedColor = new Color(255, 255, 255);
       break;
 
     default:
@@ -377,19 +334,19 @@ function setCanvasSize() {
   
   if (ratio > 1)
   {
-    worldWidth = Math.floor(ratio * minimumDimension);
-    worldHeight = minimumDimension;
+    universeWidth = Math.floor(ratio * minimumDimension);
+    universeHeight = minimumDimension;
   }
   else
   {
-    worldWidth = minimumDimension;
-    worldHeight = Math.floor((1 / ratio) * minimumDimension);
+    universeWidth = minimumDimension;
+    universeHeight = Math.floor((1 / ratio) * minimumDimension);
   }
 
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  cellSize = canvas.width / worldWidth;
+  cellSize = canvas.width / universeWidth;
   cellSpacing = cellSize / 10;
 }
 
