@@ -1,104 +1,42 @@
 import { Color } from './color.js';
+import { Universe } from './universe.js';
 
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
-const hues = [
-  new Color(255,   0,   0), // red
-  new Color(255, 128,   0), // orange
-  new Color(255, 255,   0), // yellow
-  new Color(128, 255,   0), // chartreuse
-  new Color(  0, 255,   0), // green
-  new Color(  0, 255, 128), // spring green
-  new Color(  0, 255, 255), // cyan
-  new Color(  0, 128, 255), // dodger blue
-  new Color(  0,   0, 255), // blue
-  new Color(128,   0, 255), // purple
-  new Color(255,   0, 255), // violet
-  new Color(255,   0, 128)  // magenta
-];
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-var universeWidth;
-var universeHeight;
-var cellSize;
-var cellSpacing;
-setCanvasSize();
-
-var universe = [];
-for (let x = 0; x < universeWidth; x++)
-    universe[x] = [];
+const universe = new Universe(...calculateDimensions(), Color.blend);
+const cellSize = canvas.width / universe.width;
+const cellSpacing = cellSize / 10;
 
 var isPaused = false;
 var isDrawing = false;
 var useRandomColor = true;
-var selectedColor = getRandomHue();
+var selectedColor = Color.randomHue();
 var gridColor = new Color(255, 255, 255);
 var touches = new Map();
 
-document.addEventListener('keydown', handleKeyPress);
-canvas.addEventListener('mousedown', handleMouseDown);
-canvas.addEventListener('mouseup', handleMouseUp);
-canvas.addEventListener('mouseout', handleMouseUp);
-canvas.addEventListener('mousemove', handleMouseMove);
-canvas.addEventListener('touchstart', handleTouchStart);
-canvas.addEventListener('touchend', handleTouchEnd);
-canvas.addEventListener('touchmove', handleTouchMove);
-
-document.body.addEventListener('touchstart', preventDefaultAction, { passive: false });
-document.body.addEventListener('touchend', preventDefaultAction, { passive: false });
-document.body.addEventListener('touchmove', preventDefaultAction, { passive: false });
-document.body.addEventListener('wheel', preventDefaultAction, { passive: false });
-
+attachEventListeners();
 setInterval(update, 125)
 
 function update()
 {
   if (!isPaused)
-    iterate();
+    universe.iterate();
 
   redraw();
 }
 
-function iterate()
-{
-  let next = [];
-  for (let x = 0; x < universeWidth; x++)
-  {
-    next[x] = []
-    for (let y = 0; y < universeHeight; y++)
-    {
-      let neighbors = countNeighbors(x, y);
-      let cell = null;
-
-      if (universe[x][y])
-      {
-        if (neighbors == 2 || 
-            neighbors == 3)
-          cell = universe[x][y];
-      }
-      else
-      {
-        if (neighbors == 3)
-          cell = blendNeighbors(x, y);
-      }
-      
-      next[x][y] = cell;
-    }
-  }
-
-  universe = [...next];
-}
-
 function redraw()
 {
-  context.fillStyle = 'black';
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  blankCanvas();
 
   let living = [];
-
-  for (let x = 0; x < universeWidth; x++)
-    for (let y = 0; y < universeHeight; y++)
+  for (let x = 0; x < universe.width; x++)
+    for (let y = 0; y < universe.height; y++)
     {
-      let cell = universe[x][y];
+      let cell = universe.get(x, y);
       if (cell)
       {
         drawCell(x, y, cell);
@@ -107,29 +45,27 @@ function redraw()
     }
 
   if (living.length != 0)
-    gridColor = Color.blend(living);
+  gridColor = Color.blend(living);
+
+  drawGrid();
+}
+
+function blankCanvas()
+{
+  context.fillStyle = 'black';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawGrid()
+{
   
   context.fillStyle = gridColor.toHex();
-  
-  for (let x = 1; x < universeWidth; x++)
-    for (let y = 1; y < universeHeight; y++)
+  for (let x = 1; x < universe.width; x++)
+    for (let y = 1; y < universe.height; y++)
       context.fillRect(x * cellSize - (cellSpacing/2), 
                        y * cellSize - (cellSpacing/2),
                        cellSpacing,
                        cellSpacing);
-}
-
-function getCell(x, y)
-{
-  let xWrapped = (x + universeWidth) % universeWidth;
-  let yWrapped = (y + universeHeight) % universeHeight;
-  return universe[xWrapped][yWrapped];
-}
-
-function setCell(x, y, color)
-{
-  universe[x][y] = color;
-  drawCell(x, y, color);
 }
 
 function drawCell(x, y, color)
@@ -141,40 +77,10 @@ function drawCell(x, y, color)
                    cellSize - cellSpacing);
 }
 
-function getNeighbors(x, y)
+function setCell(x, y, color)
 {
-  let neighbors = [];
-
-  for (let dx = -1; dx <= 1; dx++)
-    for (let dy = -1; dy <= 1; dy++)
-    {
-      if (dx == 0 && dy == 0)
-        continue;
-      
-      let cell = getCell(x + dx, y + dy);
-      if (cell)
-        neighbors.push(cell);
-    }
-  
-  return neighbors;
-}
-
-function countNeighbors(x, y)
-{
-  let neighbors = getNeighbors(x, y);
-  return neighbors.length;
-}
-
-function blendNeighbors(x, y)
-{
-  let neighbors = getNeighbors(x, y);
-  return Color.blend(neighbors);
-}
-
-function getRandomHue()
-{
-  let index = Math.floor(Math.random() * hues.length);
-  return hues[index];
+  universe.set(x, y, color);
+  drawCell(x, y, color);
 }
 
 function handleKeyPress(event)
@@ -189,61 +95,20 @@ function handleKeyPress(event)
       useRandomColor = true;
       return;
 
-    case 'KeyR':
-      selectedColor = hues[0];
-      break;
-
-    case 'KeyO':
-      selectedColor = hues[1];
-      break;
-
-    case 'KeyY':
-      selectedColor = hues[2];
-      break;
-    
-    case 'KeyH':
-      selectedColor = hues[3];
-      break;
-    
-    case 'KeyG':
-      selectedColor = hues[4];
-      break;
-
-    case 'KeyS':
-      selectedColor = hues[5];
-      break;
-
-    case 'KeyC':
-      selectedColor = hues[6];
-      break;
-
-    case 'KeyD':
-      selectedColor = hues[7];
-      break;
-
-    case 'KeyB':
-      selectedColor = hues[8];
-      break;
-
-    case 'KeyP':
-      selectedColor = hues[9];
-      break;
-
-    case 'KeyV':
-      selectedColor = hues[10];
-      break;
-
-    case 'KeyM':
-      selectedColor = hues[11];
-      break;
-
-    case 'KeyK':
-      selectedColor = new Color(  0,   0,   0);
-      break;
-
-    case 'KeyW':
-      selectedColor = new Color(255, 255, 255);
-      break;
+    case 'KeyR':  selectedColor = Color.red;          break;
+    case 'KeyO':  selectedColor = Color.orange;       break;
+    case 'KeyY':  selectedColor = Color.yellow;       break;
+    case 'KeyH':  selectedColor = Color.chartreuse;   break;
+    case 'KeyG':  selectedColor = Color.green;        break;
+    case 'KeyS':  selectedColor = Color.spring_green; break;
+    case 'KeyC':  selectedColor = Color.cyan;         break;
+    case 'KeyD':  selectedColor = Color.dodger_blue;  break;
+    case 'KeyB':  selectedColor = Color.blue;         break;
+    case 'KeyP':  selectedColor = Color.purple;       break;
+    case 'KeyV':  selectedColor = Color.violet;       break;
+    case 'KeyM':  selectedColor = Color.magenta;      break;
+    case 'KeyK':  selectedColor = Color.black;        break;
+    case 'KeyW':  selectedColor = Color.white;        break;
 
     default:
       return;
@@ -256,7 +121,7 @@ function handleMouseDown(event)
 {
   isDrawing = true;
   if (useRandomColor)
-    selectedColor = getRandomHue();
+    selectedColor = Color.randomHue();
   
   let bounds = canvas.getBoundingClientRect();
   let x = Math.floor((event.clientX - bounds.left) / cellSize);
@@ -292,7 +157,7 @@ function handleTouchStart(event)
   {
     let touch = event.changedTouches.item(i);
     let color = useRandomColor
-              ? getRandomHue()
+              ? Color.randomHue()
               : selectedColor;
     touches.set(touch.identifier, color);
 
@@ -323,31 +188,50 @@ function handleTouchMove(event)
   }
 }
 
-function setCanvasSize() {
-  let userAgent = navigator.userAgent;
-  let isMobile =
+function isMobile() {
+  const userAgent = navigator.userAgent;
+  return (
     /\b(BlackBerry|webOS|iPhone|IEMobile)\b/i.test(userAgent) ||
-    /\b(Android|Windows Phone|iPad|iPod)\b/i.test(userAgent);
+    /\b(Android|Windows Phone|iPad|iPod)\b/i.test(userAgent)
+  );
+}
 
-  let minimumDimension = isMobile ? 25 : 50;
+function calculateDimensions()
+{
+  let width, heigth;
+  let minimumDimension = isMobile() ? 25 : 50;
   let ratio = window.innerWidth / window.innerHeight;
-  
+
   if (ratio > 1)
   {
-    universeWidth = Math.floor(ratio * minimumDimension);
-    universeHeight = minimumDimension;
+    width = Math.floor(ratio * minimumDimension);
+    heigth = minimumDimension;
   }
   else
   {
-    universeWidth = minimumDimension;
-    universeHeight = Math.floor((1 / ratio) * minimumDimension);
+    width = minimumDimension;
+    heigth = Math.floor((1 / ratio) * minimumDimension);
   }
 
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  return [width, heigth];
+}
 
-  cellSize = canvas.width / universeWidth;
-  cellSpacing = cellSize / 10;
+function attachEventListeners()
+{
+  document.addEventListener('keydown',  handleKeyPress);
+  canvas.addEventListener('mousedown',  handleMouseDown);
+  canvas.addEventListener('mouseup',    handleMouseUp);
+  canvas.addEventListener('mouseout',   handleMouseUp);
+  canvas.addEventListener('mousemove',  handleMouseMove);
+  canvas.addEventListener('touchstart', handleTouchStart);
+  canvas.addEventListener('touchend',   handleTouchEnd);
+  canvas.addEventListener('touchmove',  handleTouchMove);
+
+  let options = { passive: false };
+  document.body.addEventListener('touchstart',  preventDefaultAction, options);
+  document.body.addEventListener('touchend',    preventDefaultAction, options);
+  document.body.addEventListener('touchmove',   preventDefaultAction, options);
+  document.body.addEventListener('wheel',       preventDefaultAction, options);
 }
 
 function preventDefaultAction(event)
