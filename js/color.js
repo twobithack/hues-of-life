@@ -1,29 +1,44 @@
 export class Color
 {
-  constructor(red, green, blue)
+  constructor(r, g, b)
   {
-    this.r = red;
-    this.g = green;
-    this.b = blue;
+    this.r = r;
+    this.g = g;
+    this.b = b;
   }
 
-  static blend(...colors)
+  static red =          new Color(255,   0,   0);
+  static orange =       new Color(255, 128,   0);
+  static yellow =       new Color(255, 255,   0);
+  static chartreuse =   new Color(128, 255,   0);
+  static green =        new Color(  0, 255,   0);
+  static spring_green = new Color(  0, 255, 128);
+  static cyan =         new Color(  0, 255, 255);
+  static dodger_blue =  new Color(  0, 128, 255);
+  static blue =         new Color(  0,   0, 255);
+  static purple =       new Color(128,   0, 255);
+  static violet =       new Color(255,   0, 255);
+  static magenta =      new Color(255,   0, 128);
+  static black =        new Color(  0,   0,   0);
+  static white =        new Color(255, 255, 255);
+
+  static blend(colors)
   {
-    let r = 0;
-    let g = 0;
-    let b = 0;
+    let rSum = 0;
+    let gSum = 0;
+    let bSum = 0;
 
     colors.forEach((color) => 
     {
-      r += color.r;
-      g += color.g;
-      b += color.b;
+      rSum += color.r;
+      gSum += color.g;
+      bSum += color.b;
     });
 
     return new Color(
-      Math.floor(r / colors.length),
-      Math.floor(g / colors.length),
-      Math.floor(b / colors.length)
+      Math.floor(rSum / colors.length),
+      Math.floor(gSum / colors.length),
+      Math.floor(bSum / colors.length)
     );
   }
 
@@ -34,6 +49,27 @@ export class Color
     let b = Math.floor(Math.random() * 255);
 
     return new Color(r, g, b);
+  }
+
+  static randomHue()
+  {
+    const hues = [
+      this.red,
+      this.orange,
+      this.yellow,
+      this.chartreuse,
+      this.green,
+      this.spring_green,
+      this.cyan,
+      this.dodger_blue,
+      this.blue,
+      this.purple,
+      this.violet,
+      this.magenta     
+    ];
+
+    const index = Math.floor(Math.random() * hues.length);
+    return hues[index];
   }
 
   toHex()
