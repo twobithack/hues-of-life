@@ -107,7 +107,7 @@ function redraw()
     }
 
   if (living.length != 0)
-    gridColor = Color.blend(...living);
+    gridColor = Color.blend(living);
   
   context.fillStyle = gridColor.toHex();
   
@@ -168,7 +168,7 @@ function countNeighbors(x, y)
 function blendNeighbors(x, y)
 {
   let neighbors = getNeighbors(x, y);
-  return Color.blend(...neighbors);
+  return Color.blend(neighbors);
 }
 
 function getRandomHue()
