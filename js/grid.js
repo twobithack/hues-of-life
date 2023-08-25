@@ -1,4 +1,4 @@
-export class Universe
+export class Grid
 {
   constructor(width, height, mergeFunction)
   {
@@ -13,21 +13,21 @@ export class Universe
 
   iterate()
   {
-    let next = [];
+    let nextIteration = [];
     for (let x = 0; x < this.width; x++)
     {
-      next[x] = []
+      nextIteration[x] = []
       for (let y = 0; y < this.height; y++)
       {
         let neighbors = this.#getNeighbors(x, y);
         let nextState = null;
         
-        let state = this.get(x, y);
-        if (state)
+        let currentState = this.get(x, y);
+        if (currentState)
         {
           if (neighbors.length === 2 || 
               neighbors.length === 3)
-            nextState = state;
+            nextState = currentState;
         }
         else
         {
@@ -35,11 +35,11 @@ export class Universe
             nextState = this.merge(neighbors);
         }
         
-        next[x][y] = nextState;
+        nextIteration[x][y] = nextState;
       }
     }
 
-    this.cells = [...next];
+    this.cells = [...nextIteration];
   }
 
   get(x, y)

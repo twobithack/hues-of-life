@@ -1,26 +1,26 @@
 export class Color
 {
+  static black        = new Color(  0,   0,   0);
+  static red          = new Color(255,   0,   0);
+  static orange       = new Color(255, 128,   0);
+  static yellow       = new Color(255, 255,   0);
+  static chartreuse   = new Color(128, 255,   0);
+  static green        = new Color(  0, 255,   0);
+  static spring_green = new Color(  0, 255, 128);
+  static cyan         = new Color(  0, 255, 255);
+  static dodger_blue  = new Color(  0, 128, 255);
+  static blue         = new Color(  0,   0, 255);
+  static purple       = new Color(128,   0, 255);
+  static violet       = new Color(255,   0, 255);
+  static magenta      = new Color(255,   0, 128);
+  static white        = new Color(255, 255, 255);
+
   constructor(r, g, b)
   {
     this.r = r;
     this.g = g;
     this.b = b;
   }
-
-  static red =          new Color(255,   0,   0);
-  static orange =       new Color(255, 128,   0);
-  static yellow =       new Color(255, 255,   0);
-  static chartreuse =   new Color(128, 255,   0);
-  static green =        new Color(  0, 255,   0);
-  static spring_green = new Color(  0, 255, 128);
-  static cyan =         new Color(  0, 255, 255);
-  static dodger_blue =  new Color(  0, 128, 255);
-  static blue =         new Color(  0,   0, 255);
-  static purple =       new Color(128,   0, 255);
-  static violet =       new Color(255,   0, 255);
-  static magenta =      new Color(255,   0, 128);
-  static black =        new Color(  0,   0,   0);
-  static white =        new Color(255, 255, 255);
 
   static blend(colors)
   {
