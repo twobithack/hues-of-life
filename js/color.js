@@ -44,9 +44,9 @@ export class Color
 
   static random()
   {
-    let r = Math.floor(Math.random() * 255);
-    let g = Math.floor(Math.random() * 255);
-    let b = Math.floor(Math.random() * 255);
+    const r = Math.floor(Math.random() * 255);
+    const g = Math.floor(Math.random() * 255);
+    const b = Math.floor(Math.random() * 255);
 
     return new Color(r, g, b);
   }
@@ -76,7 +76,7 @@ export class Color
   {
     const componentToHex = (component) => 
     {
-      let hex = component.toString(16);
+      const hex = component.toString(16);
       return (hex.length === 1) ? '0' + hex : hex;
     };
 

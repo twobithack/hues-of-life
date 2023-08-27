@@ -1,6 +1,6 @@
-export class Grid
+export class Life
 {
-  constructor(width, height, mergeFunction)
+  constructor({width, height}, mergeFunction)
   {
     this.width = width;
     this.height = height;
@@ -13,29 +13,26 @@ export class Grid
 
   iterate()
   {
-    let nextIteration = [];
+    const nextIteration = [];
     for (let x = 0; x < this.width; x++)
     {
       nextIteration[x] = []
       for (let y = 0; y < this.height; y++)
       {
-        let neighbors = this.#getNeighbors(x, y);
-        let nextState = null;
-        
-        let currentState = this.get(x, y);
-        if (currentState)
+        const neighbors = this.#getNeighbors(x, y);
+        const state = this.get(x, y);
+
+        if (state)
         {
           if (neighbors.length === 2 || 
               neighbors.length === 3)
-            nextState = currentState;
+            nextIteration[x][y] = state;
         }
         else
         {
           if (neighbors.length === 3)
-            nextState = this.merge(neighbors);
+            nextIteration[x][y] = this.merge(neighbors);
         }
-        
-        nextIteration[x][y] = nextState;
       }
     }
 
@@ -44,8 +41,8 @@ export class Grid
 
   get(x, y)
   {
-    let xWrapped = (x + this.width) % this.width;
-    let yWrapped = (y + this.height) % this.height;
+    const xWrapped = (x + this.width) % this.width;
+    const yWrapped = (y + this.height) % this.height;
     return this.cells[xWrapped][yWrapped];
   }
 
@@ -56,15 +53,14 @@ export class Grid
 
   #getNeighbors(x, y)
   {
-    let neighbors = [];
-
+    const neighbors = [];
     for (let dx = -1; dx <= 1; dx++)
       for (let dy = -1; dy <= 1; dy++)
       {
         if (dx == 0 && dy == 0)
           continue;
         
-        let cell = this.get(x + dx, y + dy);
+        const cell = this.get(x + dx, y + dy);
         if (cell)
           neighbors.push(cell);
       }

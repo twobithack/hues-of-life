@@ -1,13 +1,13 @@
 import { Color } from './color.js';
-import { Grid } from './grid.js';
+import { Life } from './life.js';
 
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const grid = new Grid(...determineDimensions(), Color.blend);
-const cellSize = canvas.width / grid.width;
+const game = new Life(getDimensions(), Color.blend);
+const cellSize = canvas.width / game.width;
 const cellSpacing = cellSize / 10;
 
 var isPaused = false;
@@ -23,7 +23,7 @@ setInterval(update, 125)
 function update()
 {
   if (!isPaused)
-    grid.iterate();
+    game.iterate();
 
   redraw();
 }
@@ -32,11 +32,11 @@ function redraw()
 {
   blankCanvas();
 
-  let living = [];
-  for (let x = 0; x < grid.width; x++)
-    for (let y = 0; y < grid.height; y++)
+  const living = [];
+  for (let x = 0; x < game.width; x++)
+    for (let y = 0; y < game.height; y++)
     {
-      let cell = grid.get(x, y);
+      const cell = game.get(x, y);
       if (cell)
       {
         drawCell(x, y, cell);
@@ -68,8 +68,8 @@ function drawCell(x, y, color)
 function drawDots()
 {
   context.fillStyle = gridColor.toHex();
-  for (let x = 1; x < grid.width; x++)
-    for (let y = 1; y < grid.height; y++)
+  for (let x = 1; x < game.width; x++)
+    for (let y = 1; y < game.height; y++)
       context.fillRect(x * cellSize - (cellSpacing/2), 
                        y * cellSize - (cellSpacing/2),
                        cellSpacing,
@@ -78,7 +78,7 @@ function drawDots()
 
 function setCell(x, y, color)
 {
-  grid.set(x, y, color);
+  game.set(x, y, color);
   drawCell(x, y, color);
 }
 
@@ -128,9 +128,9 @@ function handleMouseDown(event)
   if (useRandomColor)
     selectedColor = Color.randomHue();
   
-  let bounds = canvas.getBoundingClientRect();
-  let x = Math.floor((event.clientX - bounds.left) / cellSize);
-  let y = Math.floor((event.clientY - bounds.top) / cellSize);
+  const bounds = canvas.getBoundingClientRect();
+  const x = Math.floor((event.clientX - bounds.left) / cellSize);
+  const y = Math.floor((event.clientY - bounds.top) / cellSize);
 
   setCell(x, y, selectedColor);
   canvas.style.cursor = 'crosshair'; 
@@ -147,27 +147,26 @@ function handleMouseMove(event)
   if (!isDrawing)
     return;
   
-  let bounds = canvas.getBoundingClientRect();
-  let x = Math.floor((event.clientX - bounds.left) / cellSize);
-  let y = Math.floor((event.clientY - bounds.top) / cellSize);
+  const bounds = canvas.getBoundingClientRect();
+  const x = Math.floor((event.clientX - bounds.left) / cellSize);
+  const y = Math.floor((event.clientY - bounds.top) / cellSize);
 
   setCell(x, y, selectedColor);
 }
 
 function handleTouchStart(event)
 {
-  let bounds = canvas.getBoundingClientRect();
-
+  const bounds = canvas.getBoundingClientRect();
   for (let i = 0; i < event.changedTouches.length; i++)
   {
-    let touch = event.changedTouches.item(i);
-    let color = useRandomColor
-              ? Color.randomHue()
-              : selectedColor;
-    touches.set(touch.identifier, color);
+    const touch = event.changedTouches.item(i);
+    const x = Math.floor((touch.clientX - bounds.left) / cellSize);
+    const y = Math.floor((touch.clientY - bounds.top) / cellSize);
+    const color = useRandomColor
+                ? Color.randomHue()
+                : selectedColor;
 
-    let x = Math.floor((touch.clientX - bounds.left) / cellSize);
-    let y = Math.floor((touch.clientY - bounds.top) / cellSize);
+    touches.set(touch.identifier, color);
     setCell(x, y, color);  
   }
 }
@@ -180,20 +179,19 @@ function handleTouchEnd(event)
 
 function handleTouchMove(event)
 {
-  let bounds = canvas.getBoundingClientRect();
-
+  const bounds = canvas.getBoundingClientRect();
   for (let i = 0; i < event.changedTouches.length; i++)
   {
-    let touch = event.changedTouches.item(i);
-    let color = touches.get(touch.identifier);
+    const touch = event.changedTouches.item(i);
+    const x = Math.floor((touch.clientX - bounds.left) / cellSize);
+    const y = Math.floor((touch.clientY - bounds.top) / cellSize);
+    const color = touches.get(touch.identifier);
 
-    let x = Math.floor((touch.clientX - bounds.left) / cellSize);
-    let y = Math.floor((touch.clientY - bounds.top) / cellSize);
     setCell(x, y, color);  
   }
 }
 
-function determineDimensions()
+function getDimensions()
 {
   const userAgent = navigator.userAgent;
   const isMobile = 
@@ -202,20 +200,20 @@ function determineDimensions()
 
   const minimumDimension = isMobile ? 20 : 40;
   const ratio = window.innerWidth / window.innerHeight;
-  var width, height;
+  const dimensions = {};
 
   if (ratio > 1)
   {
-    width = Math.floor(ratio * minimumDimension);
-    height = minimumDimension;
+    dimensions.width = Math.floor(ratio * minimumDimension);
+    dimensions.height = minimumDimension;
   }
   else
   {
-    width = minimumDimension;
-    height = Math.floor((1 / ratio) * minimumDimension);
+    dimensions.width = minimumDimension;
+    dimensions.height = Math.floor((1 / ratio) * minimumDimension);
   }
 
-  return [width, height];
+  return dimensions;
 }
 
 function attachEventListeners()
