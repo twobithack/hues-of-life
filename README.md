@@ -1,4 +1,4 @@
-# Hues of Life
+# Hues of Life &middot; [![pages-build-deployment](https://github.com/digitmancer/hues-of-life/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/digitmancer/hues-of-life/deployments)
 
 Conway's Game of Life, now in color.
 
