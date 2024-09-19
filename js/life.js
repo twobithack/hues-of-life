@@ -48,7 +48,9 @@ export class Life
 
   set(x, y, color)
   {
-    this.cells[x][y] = color;
+    const xWrapped = x % this.width;
+    const yWrapped = y % this.height;
+    this.cells[xWrapped][yWrapped] = color;
   }
 
   #getNeighbors(x, y)
