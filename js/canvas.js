@@ -134,6 +134,10 @@ function handleKeyPress(event)
       useRandomColor = true;
       return;
 
+    case 'KeyF':
+      requestFullscreen();
+      return;
+
     default:
       if (event.code in colorMap)
       {
@@ -156,6 +160,8 @@ function handleMouseDown(event)
 
   setCell(x, y, selectedColor);
   canvas.style.cursor = 'crosshair'; 
+
+  suppressDefault(event);
 }
 
 function handleMouseUp()
@@ -178,6 +184,8 @@ function handleMouseMove(event)
 
 function handleTouchStart(event)
 {
+  requestFullscreen();
+
   const bounds = canvas.getBoundingClientRect();
   for (let i = 0; i < event.changedTouches.length; i++)
   {
@@ -189,7 +197,7 @@ function handleTouchStart(event)
                 : selectedColor;
 
     touches.set(touch.identifier, color);
-    setCell(x, y, color);  
+    setCell(x, y, color);
   }
 }
 
@@ -276,4 +284,28 @@ function suppressDefault(event)
 {
   if (event.target == canvas)
     event.preventDefault();
+}
+
+function isFullscreen() {
+  return !!(
+    document.fullscreenElement        ||
+    document.webkitFullscreenElement  ||
+    document.mozFullScreenElement     ||
+    document.msFullscreenElement             
+  );
+}
+
+function requestFullscreen()
+{
+  if (isFullscreen())
+    return;
+
+  if (canvas.requestFullscreen)
+    canvas.requestFullscreen();
+  else if (canvas.webkitRequestFullscreen)
+    canvas.webkitRequestFullscreen();
+  else if (canvas.mozRequestFullScreen)
+    canvas.mozRequestFullScreen();
+  else if (canvas.msRequestFullscreen)
+    canvas.msRequestFullscreen();
 }
