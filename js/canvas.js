@@ -40,7 +40,7 @@ var gridColor = new Color(255, 255, 255);
 var touches = new Map();
 
 attachEventListeners();
-setInterval(update, 125);
+setInterval(update, 100);
 
 function update()
 {
